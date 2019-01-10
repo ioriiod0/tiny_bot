@@ -6,7 +6,7 @@
 #    By: ioriiod0 <ioriiod0@gmail.com>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/01/07 16:43:18 by ioriiod0          #+#    #+#              #
-#    Updated: 2019/01/10 19:48:06 by ioriiod0         ###   ########.fr        #
+#    Updated: 2019/01/10 20:08:39 by ioriiod0         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -67,7 +67,6 @@ class Tracker(object, metaclass=TrackerMetaclass):
         return self.__tracker_slots__[key]
 
     def __setitem__(self, key: str, value: Any):
-        print(self.__mappings__)
         field = self.__mappings__.get(key)
         if not field:
             raise KeyError(

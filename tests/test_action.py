@@ -12,7 +12,7 @@ def test_basic_action():
 
     class MyActionHub(ActionHub):
         f = func
-        g = MyAction("g")
+        g = MyAction()
         h = "hello world!"
 
     hub = MyActionHub()

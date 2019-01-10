@@ -6,7 +6,7 @@
 #    By: ioriiod0 <ioriiod0@gmail.com>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/01/08 19:17:06 by ioriiod0          #+#    #+#              #
-#    Updated: 2019/01/10 17:31:57 by ioriiod0         ###   ########.fr        #
+#    Updated: 2019/01/10 20:35:51 by ioriiod0         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -33,30 +33,71 @@ class Intent(object):
         return '<intent:%s>' % self.name
 
 
+def create_action(_actions):
+    if isinstance(_actions, ActionHub):
+        return _actions
+    elif callable(_actions):
+        return _actions()
+    else:
+        raise Exception("unkown action type,%s" % type(_actions))
+
+
+def create_intents(_intents):
+    intents = {}
+    for x in _intents:
+        if isinstance(x, str):
+            x = Intent(x)
+        elif isinstance(x, dict):
+            x = Intent(**x)
+        elif isinstance(x, Intent):
+            pass
+        else:
+            raise Exception("unkown intent type,%s" % type(x))
+        intents[x.name] = x
+    return intents
+
+
+def create_tracker(_tracker):
+    assert isinstance(_tracker, type)
+    return _tracker
+
+
+def create_policies(_policies):
+    policies = []
+    for p in _policies:
+        if isinstance(p, Policy):
+            pass
+        elif callable(p):
+            p = p()
+        else:
+            raise Exception("unkown policy type,%s" % type(p))
+        policies.append(p)
+    return p
+
+
+def create_nul(_nlu):
+    if isinstance(_nlu, NLU):
+        return _nlu
+    elif callable(_nlu):
+        return _nlu()
+    else:
+        raise Exception("unkown nlu type,%s" % type(_nlu))
+
+
 class BotMetaclass(type):
     def __new__(cls, name, bases, attrs):
         if name == 'Bot':
             return type.__new__(cls, name, bases, attrs)
         assert "__domain__" in attrs
-        components = ["NLU", "ACTIONS", "INTENTS", "TRACKER", "POLICIES"]
 
-        for com in components:
-            assert com in attrs
-            c = attrs.pop(com)
-            attrs[com.lower()] = c
+        attrs["intents"] = create_intents(attrs['INTENT'])
+        attrs["nlu"] = create_nlu(attrs['NLU'])
+        attrs["tracker"] = create_tracker(attrs['TRACKER'])
+        attrs["policies"] = create_policies(attrs['POLICIES'])
+        attrs["actions"] = create_actions(attrs['ACTIONS'])
 
-        intents = {}
-        for x in attrs['intents']:
-            if isinstance(x, str):
-                x = Intent(x)
-            elif isinstance(x, dict):
-                x = Intent(**x)
-            elif isinstance(x, Intent):
-                pass
-            else:
-                raise Exception("unkown intent type")
-            intents[x.name] = x
-        attrs['intents'] = intents
+        for com in ["NLU", "ACTIONS", "INTENTS", "TRACKER", "POLICIES"]:
+            attrs.pop(com)
 
         return type.__new__(cls, name, bases, attrs)
 

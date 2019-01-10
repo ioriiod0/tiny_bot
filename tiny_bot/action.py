@@ -6,7 +6,7 @@
 #    By: ioriiod0 <ioriiod0@gmail.com>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/01/08 13:52:22 by ioriiod0          #+#    #+#              #
-#    Updated: 2019/01/10 14:47:39 by ioriiod0         ###   ########.fr        #
+#    Updated: 2019/01/10 20:58:37 by ioriiod0         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -26,9 +26,9 @@ class ActionNotFound(Exception):
 
 
 class Action(object):
-    def __init__(self, name: str):
+    def __init__(self):
         super(Action, self).__init__()
-        self.name = name
+        self.name = None
 
     def __call__(self, bot: Type['Bot'], tracker: Type['Tracker'], msg: Type[Request]) -> Optional[Response]:
         if bot._before_action:
@@ -46,8 +46,8 @@ class Action(object):
 
 
 class ActionUtterTemplate(Action):
-    def __init__(self, name: str, tpl: str):
-        super(ActionUtterTemplate, self).__init__(name)
+    def __init__(self, tpl: str):
+        super(ActionUtterTemplate, self).__init__()
         self.template = Template(tpl)
 
     def run(self, bot: Type['Bot'], tracker: Type['Tracker'], msg: Type[Request]) -> Response:
@@ -56,8 +56,8 @@ class ActionUtterTemplate(Action):
 
 
 class ActionFunctor(Action):
-    def __init__(self, name: str, func: Callable[[Type['Bot'], Type['Tracker']], Optional[Dict]]):
-        super(ActionFunctor, self).__init__(name)
+    def __init__(self, func: Callable[[Type['Bot'], Type['Tracker']], Optional[Dict]]):
+        super(ActionFunctor, self).__init__()
         self.func = func
 
     def run(self, bot: Type['Bot'], tracker: Type['Tracker'], msg: Type[Request]) -> Optional[Response]:
@@ -67,8 +67,8 @@ class ActionFunctor(Action):
 class ActionRestart(Action):
     DEFAULT_UTTER_ACTION = 'utter_restart'
 
-    def __init__(self, name: str):
-        super(ActionRestart, self).__init__(name)
+    def __init__(self):
+        super(ActionRestart, self).__init__()
 
     def run(self, bot: Type['Bot'], tracker: Type['Tracker'], msg: Type[Request]) -> Optional[Response]:
         bot.reset()
@@ -79,8 +79,8 @@ class ActionRestart(Action):
 
 
 class ActionListen(Action):
-    def __init__(self, name: str):
-        super(ActionListen, self).__init__(name)
+    def __init__(self):
+        super(ActionListen, self).__init__()
 
     def run(self, bot: Type['Bot'], tracker: Type['Tracker'], msg: Type[Request]) -> None:
         return None
@@ -95,19 +95,20 @@ class ActionHubMetaclass(type):
         assert ACTION_RESTART not in attrs
         assert ACTION_LISTEN not in attrs
 
-        attrs[ACTION_RESTART] = ActionRestart(ACTION_RESTART)
-        attrs[ACTION_LISTEN] = ActionListen(ACTION_RESTART)
+        attrs[ACTION_RESTART] = ActionRestart()
+        attrs[ACTION_LISTEN] = ActionListen()
 
         actions = {}
         for k, v in attrs.items():
             if isinstance(v, Action):
                 actions[k] = v
             elif isinstance(v, str):
-                actions[k] = ActionUtterTemplate(k, v)
+                actions[k] = ActionUtterTemplate(v)
             elif callable(v):
-                actions[k] = ActionFunctor(k, v)
+                actions[k] = ActionFunctor(v)
             else:
                 raise Exception('unkown action type')
+            actions[k].name = k
 
         for k in actions.keys():
             attrs.pop(k)
@@ -124,7 +125,7 @@ class ActionHub(object, metaclass=ActionHubMetaclass):
     def __getitem__(self, k: str) -> Type[Action]:
         act = self._actions.get(k)
         if act is None:
-            raise ActionNotFound('act %s not found' % k)
+            raise ActionNotFound('action %s not found' % k)
         return act
 
     def __str__(self):

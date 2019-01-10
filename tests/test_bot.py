@@ -5,6 +5,13 @@ from tiny_bot import *
 
 def test_basic_bot():
 
+    def some_action(bot, tracker, msg):
+        ...
+
+    class MyAction(Action):
+        def run(self, bot, tracker, msg):
+            ...
+
     store = RedisStore("test", "redis://localhost:6379/0")
 
     class MyTracker(store.Tracker):
@@ -14,24 +21,24 @@ def test_basic_bot():
         c = ListField()
         d = DictField()
 
-    def func(bot, tracker, msg):
-        return Response("world")
-
-    class MyAction(Action):
-        def run(self, bot, tracker, msg):
-            return Response("hello")
-
     class MyActionHub(ActionHub):
-        f = func
-        g = MyAction("g")
-        h = "hello world!"
+        a = some_action
+        b = MyAction()
+        c = "hello world!"  # utter template action
+
+    class MyPolicy(Policy):
+        def predict(self, tracker, msg):
+            ...
+
+    def
 
     class MyBot(Bot):
         __domain__ = "test"
         TRACKER = MyTracker
         ACTIONS = MyActionHub
-        INTENTS = ['A', 'B', 'C']
-        NLU = xx
-        POLICYS = [XXX, XX]
+        INTENTS = ['E', 'F', 'G']
+        NLU = MyNLU()
+        POLICYS = [MyPolicy]
 
-    bot = Bot()
+    bot = MyBot()
+    app = create_flask_app(bot, endpoint="/api/handle_msg")
