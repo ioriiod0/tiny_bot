@@ -13,7 +13,7 @@ def test_basic_action():
     class MyActionHub(ActionHub):
         f = func
         g = MyAction()
-        h = "hello world!"
+        h = "hello world!,{{name}}"
 
     hub = MyActionHub()
     assert isinstance(hub['f'], Action)
@@ -29,4 +29,5 @@ def test_basic_action():
 
     assert hub['f'](bot, {}, {}).body == "world"
     assert hub['g'](bot, {}, {}).body == "hello"
-    assert hub['h'](bot, {}, {}).body == "hello world!"
+    assert hub['h'](bot, {"name": "ioriiod0"}, {}
+                    ).body == "hello world!,ioriiod0"
