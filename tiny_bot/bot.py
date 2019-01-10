@@ -6,7 +6,7 @@
 #    By: ioriiod0 <ioriiod0@gmail.com>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/01/08 19:17:06 by ioriiod0          #+#    #+#              #
-#    Updated: 2019/01/10 20:35:51 by ioriiod0         ###   ########.fr        #
+#    Updated: 2019/01/10 22:53:10 by ioriiod0         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -116,7 +116,7 @@ class Bot(object, metaclass=BotMetaclass):
         self._after_request = None
         self._before_action = None
         self._after_action = None
-        self._exception_handlers = {}
+        self._exception_handlers = []
 
     def before_request(self, f: Callable[[Type[Tracker], Type[Request]], Type[Request]]):
         self._before_request = f
@@ -134,9 +134,9 @@ class Bot(object, metaclass=BotMetaclass):
         self._after_action = f
         return f
 
-    def catch(self, exception: Type[Exception]):
+    def catch(self, exception: Union[type, Tuple]):
         def _(f: Callable[[Type[Tracker], Type[Request]], Type[Response]]):
-            self._exception_handlers[exception] = f
+            self._exception_handlers.append((exception, f))
             return f
         return _
 
@@ -150,12 +150,11 @@ class Bot(object, metaclass=BotMetaclass):
         try:
             return self._handle_msg(tracker, msg)
         except Exception as e:
-            t = type(e)
-            h = self._exception_handlers.get(t)
-            if h:
-                return [h(tracker, msg)]
-            else:
-                raise e
+            for t, f in self._exception_handlers:
+                if isinstance(e, t):
+                    return [f(tracker, msg)]
+                else:
+                    raise e
 
     def _handle_msg(self, tracker: Type[Tracker], msg: Union[str, Request]) -> List[Response]:
         if not msg.intent:
