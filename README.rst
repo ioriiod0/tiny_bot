@@ -15,8 +15,7 @@ tiny-bot
 
 
 
-
-Python Boilerplate contains all the boilerplate you need to create a Python package.
+A compact and flexible multi-round dialogue engine
 
 
 * Free software: MIT license
