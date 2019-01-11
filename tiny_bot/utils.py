@@ -6,13 +6,13 @@
 #    By: ioriiod0 <ioriiod0@gmail.com>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/01/08 19:24:18 by ioriiod0          #+#    #+#              #
-#    Updated: 2019/01/10 21:03:12 by ioriiod0         ###   ########.fr        #
+#    Updated: 2019/01/11 21:39:38 by ioriiod0         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 
-from typing import Type, Dict, List, Union, Any, Optional, Callable, Tuple
+from typing import Type, Any, Optional, Callable, Tuple
 
 
-def create_flask_app(bot: type['Bot'], req2req: Callable[[Any], 'Request'], res2res: Callable[['Response'], Any]):
+def create_flask_app(bot: type['Bot'], endpoint: str, req2req: Callable[[Any], 'Request'] = None, res2res: Callable[['Response'], Any] = None):
     pass

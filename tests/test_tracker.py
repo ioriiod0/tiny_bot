@@ -103,3 +103,15 @@ def test_redis_tracker():
     assert w.b == 0
     assert w.c == []
     assert w.d == {}
+
+
+def test_request_response():
+    r = Request("xxxx", finished=True)
+    assert r.finished == True
+    assert r.body == "xxxx"
+    assert r.content_type == "text"
+
+    r = Response("xxxx", finished=True)
+    assert r.finished == True
+    assert r.body == "xxxx"
+    assert r.content_type == "text"

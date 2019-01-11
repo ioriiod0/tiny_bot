@@ -6,7 +6,7 @@
 #    By: ioriiod0 <ioriiod0@gmail.com>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/01/10 14:46:03 by ioriiod0          #+#    #+#              #
-#    Updated: 2019/01/11 20:06:26 by ioriiod0         ###   ########.fr        #
+#    Updated: 2019/01/11 21:56:24 by ioriiod0         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -29,7 +29,7 @@ class Request(dict):
         self.content_type = content_type
         self.intent = intent
         self.entities = [] if entities is None else entities
-        self.__dict__.update(kwargs)
+        self.update(kwargs)
 
     def __getattr__(self, k: str):
         try:
@@ -46,6 +46,7 @@ class Response(dict):
         super(Response, self).__init__()
         self.body = body
         self.content_type = content_type
+        self.update(kwargs)
 
     def __getattr__(self, k: str):
         try:
