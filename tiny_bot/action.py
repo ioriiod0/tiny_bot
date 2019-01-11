@@ -6,7 +6,7 @@
 #    By: ioriiod0 <ioriiod0@gmail.com>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/01/08 13:52:22 by ioriiod0          #+#    #+#              #
-#    Updated: 2019/01/11 21:04:11 by ioriiod0         ###   ########.fr        #
+#    Updated: 2019/01/11 21:15:38 by ioriiod0         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -32,7 +32,6 @@ class Action(object):
         self.name = None
 
     def __call__(self, bot: Type['Bot'], tracker: Type['Tracker'], msg: Type[Request]) -> Optional[Response]:
-        print("__call__")
         if bot._before_action:
             bot._before_action(self, tracker, msg)
 
@@ -60,7 +59,6 @@ class ActionUtterTemplate(Action):
         self.templates = [Template(tpl) for tpl in tpls]
 
     def run(self, bot: Type['Bot'], tracker: Type['Tracker'], msg: Type[Request]) -> Response:
-        print("ActionUtterTemplate")
         template = random.choice(self.templates)
         text = template.render(tracker._as_dict())
         return Response(body=text)

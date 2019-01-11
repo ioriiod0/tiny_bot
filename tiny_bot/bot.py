@@ -6,7 +6,7 @@
 #    By: ioriiod0 <ioriiod0@gmail.com>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/01/08 19:17:06 by ioriiod0          #+#    #+#              #
-#    Updated: 2019/01/11 21:02:54 by ioriiod0         ###   ########.fr        #
+#    Updated: 2019/01/11 21:14:49 by ioriiod0         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -103,7 +103,6 @@ class BotMetaclass(type):
 
 
 def auto_fill(entities: Sequence[Mapping], tracker: Type[Tracker]):
-    print(entities, tracker._as_dict())
     for entity in entities:
         name = entity['entity']
         # don't allow defaut fields be autofilled.
@@ -154,7 +153,6 @@ class Bot(object, metaclass=BotMetaclass):
         try:
             return self._handle_msg(tracker, msg)
         except Exception as e:
-            print(self._exception_handlers)
             for t, f in self._exception_handlers:
                 if isinstance(e, t):
                     return [f(tracker, msg)]
@@ -172,7 +170,6 @@ class Bot(object, metaclass=BotMetaclass):
             raise IententNotFound("intent not found for %s" % msg.intent)
 
         if intent_attrs.auto_fill:
-            print("auto_fill")
             auto_fill(msg.entities, tracker)
 
         acts, timeout = [], None
