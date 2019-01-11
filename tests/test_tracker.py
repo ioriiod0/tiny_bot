@@ -51,6 +51,13 @@ def test_basic_tracker():
 
     assert x.__domain__ == "test"
 
+    y = MyTracker()
+    assert y.a == "aaa"
+    assert y.b == 0
+    assert y.c == []
+    assert y.d == {}
+    assert y.e == None
+
 
 def test_redis_tracker():
     store = RedisStore("test", "redis://localhost:6379/0")
@@ -76,3 +83,23 @@ def test_redis_tracker():
     assert x.b == y.b
     assert x.c == y.c
     assert x.d == y.d
+
+    x.save(1)
+    import time
+    time.sleep(2)
+    assert store._redis.get(MyTracker.gen_key("111")) is None
+    z = MyTracker(sender_id="111")
+    assert z.a == "aaa"
+    assert z.b == 0
+    assert z.c == []
+    assert z.d == {}
+
+    x.save(100)
+    assert store._redis.get(MyTracker.gen_key("111")) is not None
+    x.save(0)
+    assert store._redis.get(MyTracker.gen_key("111")) is None
+    w = MyTracker.get("111")
+    assert w.a == "aaa"
+    assert w.b == 0
+    assert w.c == []
+    assert w.d == {}

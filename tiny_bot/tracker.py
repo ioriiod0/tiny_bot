@@ -6,7 +6,7 @@
 #    By: ioriiod0 <ioriiod0@gmail.com>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/01/07 16:43:18 by ioriiod0          #+#    #+#              #
-#    Updated: 2019/01/10 20:08:39 by ioriiod0         ###   ########.fr        #
+#    Updated: 2019/01/11 16:53:22 by ioriiod0         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -24,10 +24,10 @@ except:
 
 class TrackerMetaclass(type):
     def __new__(cls, name, bases, attrs):
-        if name == 'Tracker':
+        if name in ('Tracker',):
             return type.__new__(cls, name, bases, attrs)
+
         mappings = {}
-        tracker_slots = {}
 
         assert "latest_action_name" not in attrs
         assert "latest_message" not in attrs
@@ -44,22 +44,27 @@ class TrackerMetaclass(type):
             if isinstance(v, Field):
                 v.name = k
                 mappings[k] = v
-                if v.factory:
-                    tracker_slots[k] = v.factory()
-                else:
-                    tracker_slots[k] = copy.deepcopy(v.default)
 
         for k in mappings.keys():
             attrs.pop(k)
 
         attrs['__mappings__'] = mappings  # 保存属性和列的映射关系
-        attrs['__tracker_slots__'] = tracker_slots
-        return type.__new__(cls, name, bases, attrs)
+        ret = type.__new__(cls, name, bases, attrs)
+        return ret
 
 
 class Tracker(object, metaclass=TrackerMetaclass):
     def __init__(self, **kwargs):
         super(Tracker, self).__init__()
+
+        tracker_slots = {}
+        for k, v in self.__mappings__.items():
+            if v.factory:
+                tracker_slots[k] = v.factory()
+            else:
+                tracker_slots[k] = copy.deepcopy(v.default)
+
+        object.__setattr__(self, "__tracker_slots__", tracker_slots)
         for k, v in kwargs.items():
             self[k] = v
 
@@ -104,10 +109,6 @@ class RedisStore(object):
         class _Tracker(Tracker):
             __domain__ = domain
 
-            def __init__(self, sender_id: str, **kwargs):
-                super(_Tracker, self).__init__(**kwargs)
-                self.sender_id = sender_id
-
             def serialize(self) -> bytes:
                 return pickle.dumps(self.__tracker_slots__)
 
@@ -120,7 +121,8 @@ class RedisStore(object):
                 key = cls.gen_key(sender_id)
                 body = _redis.get(key)
                 if body is None:
-                    return cls(sender_id=sender_id)
+                    ret = cls(sender_id=sender_id)
+                    return ret
                 return cls.deserialize(body)
 
             @classmethod
@@ -132,7 +134,7 @@ class RedisStore(object):
                 key = self.__class__.gen_key(self.sender_id)
                 _redis.set(key, body)
                 if expire is not None:
-                    _redis.expire(self.key, expire)
+                    _redis.expire(key, expire)
 
             @classmethod
             def delete(cls, sender_id: str):

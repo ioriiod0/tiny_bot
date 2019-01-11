@@ -6,7 +6,7 @@
 #    By: ioriiod0 <ioriiod0@gmail.com>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/01/07 18:28:23 by ioriiod0          #+#    #+#              #
-#    Updated: 2019/01/10 13:14:17 by ioriiod0         ###   ########.fr        #
+#    Updated: 2019/01/11 11:36:46 by ioriiod0         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -28,7 +28,7 @@ class Field(object):
         self.factory = factory
 
     def __str__(self):
-        return '<%s:%s>' % (self.__class__.__name__, self.name)
+        return '<%s:%s:%s>' % (self.__class__.__name__, self.name, self.default)
 
 
 class StringField(Field):

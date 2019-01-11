@@ -6,7 +6,7 @@
 #    By: ioriiod0 <ioriiod0@gmail.com>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/01/08 13:52:22 by ioriiod0          #+#    #+#              #
-#    Updated: 2019/01/10 20:58:37 by ioriiod0         ###   ########.fr        #
+#    Updated: 2019/01/11 16:56:06 by ioriiod0         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -114,7 +114,7 @@ class ActionHubMetaclass(type):
             attrs.pop(k)
 
         attrs['__domain__'] = name  # 假设表名和类名一致
-        attrs['_actions'] = actions  # 保存属性和列的映射关系
+        attrs['__actions__'] = actions  # 保存属性和列的映射关系
         return type.__new__(cls, name, bases, attrs)
 
 
@@ -123,10 +123,10 @@ class ActionHub(object, metaclass=ActionHubMetaclass):
         super(ActionHub, self).__init__()
 
     def __getitem__(self, k: str) -> Type[Action]:
-        act = self._actions.get(k)
+        act = self.__actions__.get(k)
         if act is None:
             raise ActionNotFound('action %s not found' % k)
         return act
 
     def __str__(self):
-        return str(self.actions)
+        return str(self.__actions__)
