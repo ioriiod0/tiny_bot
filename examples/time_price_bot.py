@@ -50,7 +50,7 @@ class MyNLU(NLU):
 
 
 class MyBot(Bot):
-    __domain__ = "test"
+    __domain__ = "price_time_bot"
     TRACKER = MyTracker
     ACTIONS = MyActionHub
     INTENTS = ["query", "inform", "greeting", "bye"]
