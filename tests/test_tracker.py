@@ -106,12 +106,15 @@ def test_redis_tracker():
 
 
 def test_request_response():
+    import json
     r = Request("xxxx", finished=True)
     assert r.finished == True
     assert r.body == "xxxx"
     assert r.content_type == "text"
+    json.dumps(r)
 
     r = Response("xxxx", finished=True)
     assert r.finished == True
     assert r.body == "xxxx"
     assert r.content_type == "text"
+    json.dumps(r)
