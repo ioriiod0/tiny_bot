@@ -6,11 +6,11 @@
 #    By: ioriiod0 <ioriiod0@gmail.com>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/01/08 19:17:06 by ioriiod0          #+#    #+#              #
-#    Updated: 2019/01/10 22:53:10 by ioriiod0         ###   ########.fr        #
+#    Updated: 2019/01/11 21:02:54 by ioriiod0         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
-from typing import Type, Dict, List, Union, Any, Optional, Callable, Tuple
+from typing import Type, Mapping, Sequence, Union, Any, Optional, Callable, Tuple
 from functools import wraps
 from .tracker import Tracker
 from .policy import Policy
@@ -33,7 +33,7 @@ class Intent(object):
         return '<intent:%s>' % self.name
 
 
-def create_action(_actions):
+def create_actions(_actions):
     if isinstance(_actions, ActionHub):
         return _actions
     elif callable(_actions):
@@ -72,10 +72,10 @@ def create_policies(_policies):
         else:
             raise Exception("unkown policy type,%s" % type(p))
         policies.append(p)
-    return p
+    return policies
 
 
-def create_nul(_nlu):
+def create_nlu(_nlu):
     if isinstance(_nlu, NLU):
         return _nlu
     elif callable(_nlu):
@@ -90,7 +90,7 @@ class BotMetaclass(type):
             return type.__new__(cls, name, bases, attrs)
         assert "__domain__" in attrs
 
-        attrs["intents"] = create_intents(attrs['INTENT'])
+        attrs["intents"] = create_intents(attrs['INTENTS'])
         attrs["nlu"] = create_nlu(attrs['NLU'])
         attrs["tracker"] = create_tracker(attrs['TRACKER'])
         attrs["policies"] = create_policies(attrs['POLICIES'])
@@ -102,11 +102,15 @@ class BotMetaclass(type):
         return type.__new__(cls, name, bases, attrs)
 
 
-def auto_fill(entities: List[Dict], traker: Type[Tracker]):
+def auto_fill(entities: Sequence[Mapping], tracker: Type[Tracker]):
+    print(entities, tracker._as_dict())
     for entity in entities:
         name = entity['entity']
+        # don't allow defaut fields be autofilled.
+        if name in ['latest_action_name', 'latest_message', 'latest_replies', 'sender_id']:
+            continue
         if name in tracker:
-            tracker[name] = e['value']
+            tracker[name] = entity['value']
 
 
 class Bot(object, metaclass=BotMetaclass):
@@ -122,7 +126,7 @@ class Bot(object, metaclass=BotMetaclass):
         self._before_request = f
         return f
 
-    def before_request(self, f: Callable[[Type[Tracker], Type[Request]], Type[Request]]):
+    def after_request(self, f: Callable[[Type[Tracker], Type[Response]], Type[Response]]):
         self._after_request = f
         return f
 
@@ -143,31 +147,32 @@ class Bot(object, metaclass=BotMetaclass):
     def __str__(self):
         return "<bot: %s>" % self.__domain__
 
-    def handle_msg(self, msg: Union[str, Request], sender_id: str) -> List[Response]:
+    def handle_msg(self, msg: Union[str, Request], sender_id: str) -> Sequence[Response]:
         if isinstance(msg, str):
             msg = Request(body=msg)
         tracker = self.tracker.get(sender_id)
         try:
             return self._handle_msg(tracker, msg)
         except Exception as e:
+            print(self._exception_handlers)
             for t, f in self._exception_handlers:
                 if isinstance(e, t):
                     return [f(tracker, msg)]
-                else:
-                    raise e
+            raise e
 
-    def _handle_msg(self, tracker: Type[Tracker], msg: Union[str, Request]) -> List[Response]:
+    def _handle_msg(self, tracker: Type[Tracker], msg: Union[str, Request]) -> Sequence[Response]:
         if not msg.intent:
             msg = self.nlu(self, tracker, msg)
 
         if self._before_request:
-            msg = self._before_request(self, tracker, msg)
+            msg = self._before_request(tracker, msg)
 
-        intent_attrs = self.intents.get(msg.intent['name'])
+        intent_attrs = self.intents.get(msg.intent)
         if not intent_attrs:
             raise IententNotFound("intent not found for %s" % msg.intent)
 
         if intent_attrs.auto_fill:
+            print("auto_fill")
             auto_fill(msg.entities, tracker)
 
         acts, timeout = [], None
@@ -186,13 +191,13 @@ class Bot(object, metaclass=BotMetaclass):
         tracker.latest_action_name = acts[-1]
 
         if self._after_request:
-            resps = self._after_request(self, tracker, resps)
+            resps = self._after_request(tracker, resps)
 
         tracker.save(timeout)
 
         return resps
 
-    def _run_actions(self, tracker: Union[Type[Tracker], str], acts: List[str], msg: Type[Request]) -> List[Response]:
+    def _run_actions(self, tracker: Union[Type[Tracker], str], acts: Sequence[str], msg: Type[Request]) -> Sequence[Response]:
         if isinstance(tracker, str):
             tracker = self.tracker.get(tracker)
         l = []
@@ -201,10 +206,11 @@ class Bot(object, metaclass=BotMetaclass):
             if ret is None:
                 continue
             l.append(ret)
-        return ret
+        return l
 
     def execute_action(self, act: str, tracker: Union[Type[Tracker], str], msg: Type[Request]) -> Optional[Response]:
         action = self.actions[act]
-        if isinstance(sender, str):
+        if isinstance(tracker, str):
             tracker = self.tracker.get(tracker)
-        return action(self, tracker, msg)
+        ret = action(self, tracker, msg)
+        return ret

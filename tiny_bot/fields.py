@@ -6,12 +6,12 @@
 #    By: ioriiod0 <ioriiod0@gmail.com>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/01/07 18:28:23 by ioriiod0          #+#    #+#              #
-#    Updated: 2019/01/11 11:36:46 by ioriiod0         ###   ########.fr        #
+#    Updated: 2019/01/11 17:32:29 by ioriiod0         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 
-from typing import Dict, Type, Optional, Any, Callable
+from typing import Type, Optional, Any, Callable
 
 
 class ValidateError(Exception):

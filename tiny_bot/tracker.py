@@ -6,7 +6,7 @@
 #    By: ioriiod0 <ioriiod0@gmail.com>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/01/07 16:43:18 by ioriiod0          #+#    #+#              #
-#    Updated: 2019/01/11 16:53:22 by ioriiod0         ###   ########.fr        #
+#    Updated: 2019/01/11 20:02:19 by ioriiod0         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -99,12 +99,16 @@ class Tracker(object, metaclass=TrackerMetaclass):
     def __str__(self):
         return str(self.__tracker_slots__)
 
+    def _as_dict(self):
+        return self.__tracker_slots__
+
 
 class RedisStore(object):
     def __init__(self, domain, redis_uri, db=None, **kwargs):
         super(RedisStore, self).__init__()
-        self._redis = _redis = redis.Redis.from_url(
+        _redis = redis.Redis.from_url(
             redis_uri, db=db, **kwargs)
+        self._redis = _redis
 
         class _Tracker(Tracker):
             __domain__ = domain

@@ -27,7 +27,11 @@ def test_basic_action():
 
     bot = FakeBot()
 
-    assert hub['f'](bot, {}, {}).body == "world"
-    assert hub['g'](bot, {}, {}).body == "hello"
-    assert hub['h'](bot, {"name": "ioriiod0"}, {}
+    class FakeTracker(dict):
+        def _as_dict(self):
+            return self
+
+    assert hub['f'](bot, FakeTracker(), {}).body == "world"
+    assert hub['g'](bot, FakeTracker(), {}).body == "hello"
+    assert hub['h'](bot, FakeTracker(name="ioriiod0"), {}
                     ).body == "hello world!,ioriiod0"

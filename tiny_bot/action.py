@@ -6,12 +6,13 @@
 #    By: ioriiod0 <ioriiod0@gmail.com>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/01/08 13:52:22 by ioriiod0          #+#    #+#              #
-#    Updated: 2019/01/11 16:56:06 by ioriiod0         ###   ########.fr        #
+#    Updated: 2019/01/11 21:04:11 by ioriiod0         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
 from .types import Request, Response
-from typing import Dict, Type, Optional, Callable
+from typing import Mapping, Type, Optional, Callable, Sequence
+import random
 
 
 from jinja2 import Template
@@ -31,9 +32,17 @@ class Action(object):
         self.name = None
 
     def __call__(self, bot: Type['Bot'], tracker: Type['Tracker'], msg: Type[Request]) -> Optional[Response]:
+        print("__call__")
         if bot._before_action:
             bot._before_action(self, tracker, msg)
+
         ret = self.run(bot, tracker, msg)
+
+        if isinstance(ret, str):
+            ret = Response(ret)
+        elif isinstance(ret, dict):
+            ret = Response(**ret)
+
         if bot._after_action:
             bot._after_action(self, tracker, msg)
         return ret
@@ -46,17 +55,19 @@ class Action(object):
 
 
 class ActionUtterTemplate(Action):
-    def __init__(self, tpl: str):
+    def __init__(self, tpls: Sequence[str]):
         super(ActionUtterTemplate, self).__init__()
-        self.template = Template(tpl)
+        self.templates = [Template(tpl) for tpl in tpls]
 
     def run(self, bot: Type['Bot'], tracker: Type['Tracker'], msg: Type[Request]) -> Response:
-        text = self.template.render(tracker)
+        print("ActionUtterTemplate")
+        template = random.choice(self.templates)
+        text = template.render(tracker._as_dict())
         return Response(body=text)
 
 
 class ActionFunctor(Action):
-    def __init__(self, func: Callable[[Type['Bot'], Type['Tracker']], Optional[Dict]]):
+    def __init__(self, func: Callable[[Type['Bot'], Type['Tracker']], Optional[Mapping]]):
         super(ActionFunctor, self).__init__()
         self.func = func
 
@@ -103,9 +114,11 @@ class ActionHubMetaclass(type):
             if isinstance(v, Action):
                 actions[k] = v
             elif isinstance(v, str):
-                actions[k] = ActionUtterTemplate(v)
+                actions[k] = ActionUtterTemplate([v])
             elif callable(v):
                 actions[k] = ActionFunctor(v)
+            elif isinstance(v, (list, tuple)):
+                actions[k] = ActionUtterTemplate(v)
             else:
                 raise Exception('unkown action type')
             actions[k].name = k
