@@ -25,7 +25,8 @@ A compact and flexible multi-round dialogue engine
 Features
 --------
 
-* TODO
+* Add more documents
+* Add more examples
 
 Credits
 -------
