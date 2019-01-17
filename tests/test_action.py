@@ -22,8 +22,8 @@ def test_basic_action():
 
     class FakeBot(object):
         def __init__(self):
-            self._before_action = None
-            self._after_action = None
+            self._before_action = []
+            self._after_action = []
 
     bot = FakeBot()
 

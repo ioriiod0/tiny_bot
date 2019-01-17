@@ -6,7 +6,7 @@
 #    By: ioriiod0 <ioriiod0@gmail.com>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/01/08 13:52:22 by ioriiod0          #+#    #+#              #
-#    Updated: 2019/01/11 21:15:38 by ioriiod0         ###   ########.fr        #
+#    Updated: 2019/01/17 14:03:53 by ioriiod0         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -32,8 +32,8 @@ class Action(object):
         self.name = None
 
     def __call__(self, bot: Type['Bot'], tracker: Type['Tracker'], msg: Type[Request]) -> Optional[Response]:
-        if bot._before_action:
-            bot._before_action(self, tracker, msg)
+        for f in bot._before_action:
+            f(self, tracker, msg)
 
         ret = self.run(bot, tracker, msg)
 
@@ -42,8 +42,8 @@ class Action(object):
         elif isinstance(ret, dict):
             ret = Response(**ret)
 
-        if bot._after_action:
-            bot._after_action(self, tracker, msg)
+        for f in bot._after_action:
+            f(self, tracker, msg)
         return ret
 
     def run(self, bot: Type['Bot'], tracker: Type['Tracker'], msg: Type[Request]) -> Optional[Response]:
