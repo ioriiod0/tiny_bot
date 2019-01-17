@@ -6,7 +6,7 @@
 #    By: ioriiod0 <ioriiod0@gmail.com>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/01/08 19:17:06 by ioriiod0          #+#    #+#              #
-#    Updated: 2019/01/17 14:02:51 by ioriiod0         ###   ########.fr        #
+#    Updated: 2019/01/17 15:02:10 by ioriiod0         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -18,13 +18,16 @@ from .nlu import NLU
 from .action import Action, ActionHub
 from .types import Request, Response
 
+import logging
+logger = logging.getLogger(__file__)
+
 
 class IententNotFound(Exception):
     pass
 
 
 class Intent(object):
-    def __init__(self, name, auto_fill=True, **kwargs):
+    def __init__(self, name: str, auto_fill: bool = True,  **kwargs):
         self.name = name
         self.auto_fill = auto_fill
         self.__dict__.update(kwargs)
@@ -156,7 +159,8 @@ class Bot(object, metaclass=BotMetaclass):
             for t, f in self._exception_handlers:
                 if isinstance(e, t):
                     return [f(tracker, msg)]
-            raise e
+            logger.error(e, exc_info=True)
+            return [Response("an error occurred...", exception=e)]
 
     def _handle_msg(self, tracker: Type[Tracker], msg: Union[str, Request]) -> Sequence[Response]:
         if not msg.intent:

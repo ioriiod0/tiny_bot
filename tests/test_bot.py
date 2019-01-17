@@ -89,7 +89,7 @@ def bot():
         __domain__ = "test"
         TRACKER = MyTracker
         ACTIONS = MyActionHub
-        INTENTS = ["query", "inform", "greeting",
+        INTENTS = ["query", "inform", Intent("greeting", auto_fill=False),
                    "bye", "raise1", "raise2", "raise3"]
         NLU = MyNLU
         POLICIES = [MyPolicy]
@@ -191,8 +191,8 @@ def test_exception_hook(bot):
     res = bot.handle_msg(Request(body="", intent="raise2"), "1111")
     assert res[0].body == "catch2"
 
-    with pytest.raises(Error3):
-        res = bot.handle_msg(Request(body="", intent="raise3"), "1111")
+    res = bot.handle_msg(Request(body="", intent="raise3"), "1111")
+    assert res[0].body == "an error occurred..."
 
 
 def test_hook(bot):
@@ -226,3 +226,42 @@ def test_hook(bot):
     res = bot.handle_msg(Request(body="你好", intent="greeting"), "1111")
     assert len(res) == 1 and res[0].body in ['你好', '小垃圾,咋了？']
     assert flags == ['a', 'c', 'd', 'b']
+
+
+def test_plugin(bot):
+
+    class Logger(object):
+        def __init__(self, bot):
+
+            @bot.before_request
+            def before_request(tracker, req):
+                print(req)
+                return req
+
+            @bot.after_request
+            def after_request(tracker, res):
+                print(res)
+                return res
+
+    class UnAuthed(Exception):
+        pass
+
+    class Auth(object):
+        def __init__(self, bot):
+
+            @bot.before_request
+            def before_request(tracker, req):
+                if req.apikey != "aaabbbccc":
+                    raise UnAuthed("api key required!")
+                return req
+
+            @bot.catch(UnAuthed)
+            def catch(tracker, req):
+                return Response("please login first")
+
+    logger = Logger(bot)
+    auth = Auth(bot)
+
+    res = bot.handle_msg(
+        Request(body="你好", intent="greeting", apikey="111111"), "1111")
+    assert len(res) == 1 and res[0].body == "please login first"
