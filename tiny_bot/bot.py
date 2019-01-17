@@ -6,7 +6,7 @@
 #    By: ioriiod0 <ioriiod0@gmail.com>              +#+  +:+       +#+         #
 #                                                 +#+#+#+#+#+   +#+            #
 #    Created: 2019/01/08 19:17:06 by ioriiod0          #+#    #+#              #
-#    Updated: 2019/01/17 15:02:10 by ioriiod0         ###   ########.fr        #
+#    Updated: 2019/01/17 17:47:39 by ioriiod0         ###   ########.fr        #
 #                                                                              #
 # **************************************************************************** #
 
@@ -160,7 +160,7 @@ class Bot(object, metaclass=BotMetaclass):
                 if isinstance(e, t):
                     return [f(tracker, msg)]
             logger.error(e, exc_info=True)
-            return [Response("an error occurred...", exception=e)]
+            raise e
 
     def _handle_msg(self, tracker: Type[Tracker], msg: Union[str, Request]) -> Sequence[Response]:
         if not msg.intent:
